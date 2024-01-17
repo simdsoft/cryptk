@@ -11,6 +11,48 @@ namespace cryptk
 {
 namespace rsa
 {
+enum PaddingMode
+{
+    PKCS1_PADDING      = 1,
+    SSLV23_PADDING     = 2,
+    NO_PADDING         = 3,
+    PKCS1_OAEP_PADDING = 4,
+    X931_PADDING       = 5,
+    /* EVP_PKEY_ only */
+    PKCS1_PSS_PADDING = 6,
+};
+
+namespace pub
+{
+// supported PaddingModes : RSA_PKCS1_PADDING, RSA_PKCS1_OAEP_PADDING, RSA_SSLV23_PADDING,
+// RSA_NO_PADDING
+std::string encrypt(std::string_view plaintext, std::string_view keystream, int paddingMode = PKCS1_OAEP_PADDING);
+std::string decrypt(std::string_view cipertext, std::string_view keystream, int paddingMode = PKCS1_PADDING);
+
+// supported PaddingModes : RSA_PKCS1_PADDING, RSA_PKCS1_OAEP_PADDING, RSA_SSLV23_PADDING,
+// RSA_NO_PADDING
+std::string encrypt2(std::string_view plaintext, std::string_view keyfile, int paddingMode = PKCS1_OAEP_PADDING);
+std::string decrypt2(std::string_view cipertext, std::string_view keyfile, int paddingMode = PKCS1_PADDING);
+}  // namespace pub
+
+namespace pri
+{
+// supported PaddingModes : RSA_PKCS1_PADDING, RSA_X931_PADDING, RSA_NO_PADDING
+std::string encrypt(std::string_view plaintext, std::string_view keystream, int paddingMode = PKCS1_PADDING);
+std::string decrypt(std::string_view cipertext, std::string_view keystream, int paddingMode = PKCS1_OAEP_PADDING);
+
+// supported PaddingModes : RSA_PKCS1_PADDING, RSA_X931_PADDING, RSA_NO_PADDING
+std::string encrypt2(std::string_view plaintext, std::string_view keyfile, int paddingMode = PKCS1_PADDING);
+std::string decrypt2(std::string_view cipertext, std::string_view keyfile, int paddingMode = PKCS1_OAEP_PADDING);
+}  // namespace pri
+}  // namespace rsa
+}
+
+namespace cryptk
+{
+
+namespace rsa
+{
 struct RSA_Key
 {
     RSA* p_rsa;
@@ -178,8 +220,8 @@ struct decrypt_helper
     close_key_func close_key;
 };
 
-static std::string common_encrypt(cxx17::string_view plaintext,
-                                  cxx17::string_view key,
+static std::string common_encrypt(std::string_view plaintext,
+                                  std::string_view key,
                                   const encrypt_helper& helper,
                                   int paddingMode)
 {
@@ -235,8 +277,8 @@ static std::string common_encrypt(cxx17::string_view plaintext,
     return result;
 }
 
-static std::string common_decrypt(cxx17::string_view cipertext,
-                                  cxx17::string_view key,
+static std::string common_decrypt(std::string_view cipertext,
+                                  std::string_view key,
                                   const decrypt_helper& helper,
                                   int paddingMode)
 {
@@ -286,23 +328,23 @@ static std::string common_decrypt(cxx17::string_view cipertext,
 
 namespace pub
 {
-std::string encrypt(cxx17::string_view plaintext, cxx17::string_view key, int paddingMode)
+std::string encrypt(std::string_view plaintext, std::string_view key, int paddingMode)
 {
     encrypt_helper helper = {load_public_key_from_mem, public_compute_lens, RSA_public_encrypt, close_keybio};
     return common_encrypt(plaintext, key, helper, paddingMode);
 }
-std::string decrypt(cxx17::string_view ciphertext, cxx17::string_view key, int paddingMode)
+std::string decrypt(std::string_view ciphertext, std::string_view key, int paddingMode)
 {
     decrypt_helper helper = {load_public_key_from_mem, RSA_public_decrypt, close_keybio};
     return common_decrypt(ciphertext, key, helper, paddingMode);
 }
 
-std::string encrypt2(cxx17::string_view plaintext, cxx17::string_view keyfile, int paddingMode)
+std::string encrypt2(std::string_view plaintext, std::string_view keyfile, int paddingMode)
 {
     encrypt_helper helper = {load_public_key_from_file, public_compute_lens, RSA_public_encrypt, close_keybio};
     return common_encrypt(plaintext, keyfile, helper, paddingMode);
 }
-std::string decrypt2(cxx17::string_view ciphertext, cxx17::string_view keyfile, int paddingMode)
+std::string decrypt2(std::string_view ciphertext, std::string_view keyfile, int paddingMode)
 {
     decrypt_helper helper = {load_public_key_from_file, RSA_public_decrypt, close_keybio};
     return common_decrypt(ciphertext, keyfile, helper, paddingMode);
@@ -311,25 +353,25 @@ std::string decrypt2(cxx17::string_view ciphertext, cxx17::string_view keyfile, 
 
 namespace pri
 {
-std::string encrypt(cxx17::string_view plaintext, cxx17::string_view key, int paddingMode)
+std::string encrypt(std::string_view plaintext, std::string_view key, int paddingMode)
 {
     encrypt_helper helper = {load_private_key_from_mem, private_compute_lens, (RSA_crypto_func)&RSA_private_encrypt,
                              close_keybio};
     return common_encrypt(plaintext, key, helper, paddingMode);
 }
-std::string decrypt(cxx17::string_view ciphertext, cxx17::string_view key, int paddingMode)
+std::string decrypt(std::string_view ciphertext, std::string_view key, int paddingMode)
 {
     decrypt_helper helper = {load_private_key_from_mem, RSA_private_decrypt, close_keybio};
     return common_decrypt(ciphertext, key, helper, paddingMode);
 }
 
-std::string encrypt2(cxx17::string_view plaintext, cxx17::string_view keyfile, int paddingMode)
+std::string encrypt2(std::string_view plaintext, std::string_view keyfile, int paddingMode)
 {
     encrypt_helper helper = {load_private_key_from_file, private_compute_lens, (RSA_crypto_func)&RSA_private_encrypt,
                              close_keybio};
     return common_encrypt(plaintext, keyfile, helper, paddingMode);
 }
-std::string decrypt2(cxx17::string_view ciphertext, cxx17::string_view keyfile, int paddingMode)
+std::string decrypt2(std::string_view ciphertext, std::string_view keyfile, int paddingMode)
 {
     decrypt_helper helper = {load_private_key_from_file, RSA_private_decrypt, close_keybio};
     return common_decrypt(ciphertext, keyfile, helper, paddingMode);
