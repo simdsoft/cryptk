@@ -1,4 +1,14 @@
+/*
+* The wrapper of openssl RSA encrypt/decrypt
+* verify easy to use
+* Note: The key must be PKCS#8 PEM format, refer online RSA key generators:
+*    - https://cryptotools.net/rsagen
+*    - http://www.metools.info/code/c80.html
+*/
 #pragma once
+
+#include <string>
+#include <string_view>
 
 namespace cryptk
 {
